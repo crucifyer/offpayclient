@@ -1,0 +1,6 @@
+{
+    "mertid": "demosite",
+    "site": "www.demosite.com",
+    "apino": "1",
+    "secret": "발급해드린비밀키는절대노출되면안됩니다."
+}
