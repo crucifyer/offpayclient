@@ -22,11 +22,11 @@ $db = new \PDO(/* */);
 
 switch($data['action']) {
 	case 'search': // 아이디 찾기
-		if(!isset($data['rs_money'], $data['name'], $data['cell'])) {
+		if(!isset($data['io_money'], $data['name'], $data['cell'])) {
 			\Offpay\Offpay::response(500, json_encode(['date' => date('Y-m-d H:i:s'), 'data' => $data, 'error' => __LINE__], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 		}
 		$wheres = [
-			"amount = {$data['rs_money']}",
+			"amount = {$data['io_money']}",
 		];
 		if($data['name']) {
 			$wheres[] = 'name = :name';
