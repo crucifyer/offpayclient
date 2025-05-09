@@ -21,9 +21,11 @@ if($_POST['cash_number'] == '') {
 
 include_once __DIR__.'/../lib/Offpay.class.php';
 \Offpay\Offpay::init(__DIR__.'/../config/example.json'); // 설정파일은 웹에서 접근 못하는 위치에 놓으세요.
-$res = \Offpay\Offpay::doReserve($_SESSION['user_id'], $_POST['name'], $_POST['price'], $bank_accounts[$_POST['bank_account']], \OffPay\Offpay::encodeCashReceipt($_POST['cash_type'], $_POST['cash_number']));
+$res = \Offpay\Offpay::doReserve(
+	$_SESSION['user_id'].':'.$ordid, // noti 받을 때 주문건 구별을 하려면 주문번호를 추가하세요.
+	$_POST['name'], $_POST['price'], $bank_accounts[$_POST['bank_account']], \OffPay\Offpay::encodeCashReceipt($_POST['cash_type'], $_POST['cash_number']));
 if($res['status'] == 200) {
-	$res['data']['rs_seq'] // 예약 번호
+	$res['data']['rs_seq'] // 예약 번호 - 수동 처리시 새로 생성되기에 매칭에 적합하지 않습니다.
 	$message = '['.$_POST['bank_account'].'] '.$_POST['price'].'원 입금인:'.$_POST['name'].' 으로 예약되었습니다.';
 	/* 예약 완료 메세지 출력 */
 }

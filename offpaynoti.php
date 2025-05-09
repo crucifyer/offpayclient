@@ -41,18 +41,20 @@ switch($data['action']) {
 		$stmt->execute($fields);
 		if(!($rows = $stmt->fetchAll(PDO::FETCH_OBJ))) \Offpay\Offpay::response(404, '검색된 회원이 없습니다.');
 		if(1 < count($rows)) \Offpay\Offpay::response(400, '검색된 회원이 많습니다.');
-		\Offpay\Offpay::response(200, '검색되었습니다.', ['user_id' => $rows[0]->user_id, 'cell' => preg_replace('~[^\d]+~', '', $rows[0]->cell)]);
+		\Offpay\Offpay::response(200, '검색되었습니다.', ['user_id' => $rows[0]->user_id.':'.$rows[0]->ordid, 'cell' => preg_replace('~[^\d]+~', '', $rows[0]->cell)]);
 		break;
 	case 'deposit': // 입금
 		if(!isset($data['rs_seq'], $data['user_id'], $data['sender_name'], $data['bank_account'], $data['io_money'], $data['io_time'], $data['cash_receipt']) || !preg_match('~^[1-9]\d*$~', $data['rs_seq'])) {
 			\Offpay\Offpay::response(400, json_encode(['date' => date('Y-m-d H:i:s'), 'data' => $data, 'error' => __LINE__], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 		}
+		list($user_id, $ordid) = explode(':', $data['user_id'], 2);
 		$db->beginTransaction();
 		try {
 			$fields = [
-				'tid' => 'offpay'.$data['rs_seq']
+				'user_id' => $user_id,
+				'ordid' => $ordid,
 			];
-			$stmt = $db->prepare("/* 예약 번호로 이미 처리 되었는지 확인 */ WHERE tid = :tid LIMIT 1 FOR UPDATE");
+			$stmt = $db->prepare("/* 주문번호로 이미 처리 되었는지 확인 */ WHERE user_id = :user_id, ordid = :ordid LIMIT 1 FOR UPDATE");
 			$stmt->execute($fields);
 			if ($stmt->fetchObject()) {
 				\Offpay\Offpay::response(200, '이미 입금처리 되었습니다.');
@@ -65,6 +67,9 @@ switch($data['action']) {
 				if (!($user = $stmt->fetch())) {
 					\Offpay\Offpay::response(404, 'unknownuser');
 				} else {
+					$fields = [
+						'tid' => 'offpay'.$data['rs_seq']
+					];
 					/* 입금 처리 */
 					$db->commit();
 					\Offpay\Offpay::response(200, '입금 되었습니다.');
